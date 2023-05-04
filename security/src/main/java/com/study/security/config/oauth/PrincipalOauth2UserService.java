@@ -2,6 +2,10 @@ package com.study.security.config.oauth;
 
 import com.study.security.Repository.UserRepository;
 import com.study.security.config.auth.PrincipalDetails;
+import com.study.security.config.oauth.provider.FacebookUserInfo;
+import com.study.security.config.oauth.provider.GoogleUserInfo;
+import com.study.security.config.oauth.provider.NaverUserInfo;
+import com.study.security.config.oauth.provider.OAuth2UserInfo;
 import com.study.security.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +15,8 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +39,25 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         System.out.println("userRequest = " + oauth2User.getAttributes());
 
         // 회원가입을 강제로 진행해볼 예정
-        String provider = userRequest.getClientRegistration().getClientId(); //구글
-        String providerId = oauth2User.getAttribute("sub");
-        String username = provider + " " + providerId; //google_101830303551133232323
+        OAuth2UserInfo oAuth2UserInfo = null;
+        if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
+            System.out.println("구글 로그인 요청");
+            oAuth2UserInfo = new GoogleUserInfo(oauth2User.getAttributes());
+        } else if(userRequest.getClientRegistration().getRegistrationId().equals("facebook")){
+            System.out.println("페이스북 로그인 요청");
+            oAuth2UserInfo = new FacebookUserInfo(oauth2User.getAttributes());
+        } else if(userRequest.getClientRegistration().getRegistrationId().equals("naver")){
+            System.out.println("네이버 로그인 요청");
+            oAuth2UserInfo = new NaverUserInfo((Map)oauth2User.getAttributes().get("response"));
+        } else{
+            System.out.println("구글, 페이스북, 네이버 로그인만 지원합니다.");
+        }
+
+        String provider = oAuth2UserInfo.getProvider();
+        String providerId = oAuth2UserInfo.getProviderId();
+        String username = provider + " " + providerId;
         String password = bCryptPasswordEncoder.encode("겟인데어");
-        String email = oauth2User.getAttribute("email");
+        String email = oAuth2UserInfo.getEmail();
         String role = "ROLE_USER";
 
         User userEntity = userRepository.findByUsername(username);
