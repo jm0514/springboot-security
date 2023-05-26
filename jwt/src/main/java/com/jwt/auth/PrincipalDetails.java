@@ -1,6 +1,7 @@
 package com.jwt.auth;
 
 import com.jwt.model.User;
+import lombok.Data;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,9 +9,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 
+@Data
 public class PrincipalDetails implements UserDetails {
 
-    @Getter
     private User user;
 
     public PrincipalDetails(User user) {
